@@ -7,6 +7,8 @@ class Matrix: public node::ObjectWrap {
     static Persistent<FunctionTemplate> constructor;
     static void Init(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
+    static Local<Object> NewInstance();
+    
     Matrix();      
     Matrix(cv::Mat other, cv::Rect roi);
     Matrix(int rows, int cols);

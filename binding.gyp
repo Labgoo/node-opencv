@@ -3,6 +3,7 @@
       "target_name": "opencv"
       , "sources": [ 
           "src/init.cc"
+        , "src/KeyPoint.cc"
         , "src/Matrix.cc"
         , "src/OpenCV.cc"
         , "src/CascadeClassifierWrap.cc"
@@ -10,6 +11,8 @@
         , "src/Point.cc"
         , "src/VideoCaptureWrap.cc"
         , "src/CamShift.cc"
+        , "src/FeatureDetector.cc"
+        , "src/DescriptorExtractor.cc"
         ]
       , 'libraries': [
           '<!@(pkg-config --libs opencv)'

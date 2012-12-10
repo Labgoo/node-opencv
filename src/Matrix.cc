@@ -95,6 +95,15 @@ Matrix::New(const Arguments &args) {
 	return scope.Close(args.Holder());
 }
 
+Local<Object>
+Matrix::NewInstance(){
+  HandleScope scope;
+
+  Local<Value> args[] = {}; 
+  Local<Object> instance = constructor->GetFunction()->NewInstance(0, args);
+  return scope.Close(instance);
+}
+
 
 Matrix::Matrix(): ObjectWrap() {
 	mat = cv::Mat();
