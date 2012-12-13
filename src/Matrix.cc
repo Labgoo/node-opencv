@@ -12,18 +12,13 @@ void
 Matrix::Init(Handle<Object> target) {
 	HandleScope scope;
 
-	//Class
-	v8::Local<v8::FunctionTemplate> m = v8::FunctionTemplate::New(New);
-	m->SetClassName(v8::String::NewSymbol("Matrix"));
-
 	// Constructor
-	constructor = Persistent<FunctionTemplate>::New(m);
+	constructor = Persistent<FunctionTemplate>::New(v8::FunctionTemplate::New(Matrix::New));
 	constructor->InstanceTemplate()->SetInternalFieldCount(1);
 	constructor->SetClassName(String::NewSymbol("Matrix"));
 
-	// Prototype
-	//Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
-
+	Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
+    proto->SetAccessor(String::NewSymbol("type"), GetType, RaiseImmutable);   
 
 	NODE_SET_PROTOTYPE_METHOD(constructor, "row", Row);
 	NODE_SET_PROTOTYPE_METHOD(constructor, "col", Col);
@@ -59,15 +54,13 @@ Matrix::Init(Handle<Object> target) {
 	NODE_SET_PROTOTYPE_METHOD(constructor, "drawContour", DrawContour);
 	NODE_SET_PROTOTYPE_METHOD(constructor, "drawAllContours", DrawAllContours);
 	
-  NODE_SET_PROTOTYPE_METHOD(constructor, "goodFeaturesToTrack", GoodFeaturesToTrack);
-  NODE_SET_PROTOTYPE_METHOD(constructor, "houghLinesP", HoughLinesP);
+	NODE_SET_PROTOTYPE_METHOD(constructor, "goodFeaturesToTrack", GoodFeaturesToTrack);
+	NODE_SET_PROTOTYPE_METHOD(constructor, "houghLinesP", HoughLinesP);
 
 	NODE_SET_METHOD(constructor, "Eye", Eye);
 
-
-	target->Set(String::NewSymbol("Matrix"), m->GetFunction());
+	target->Set(String::NewSymbol("Matrix"), constructor->GetFunction());
 };
-
 
 Handle<Value>
 Matrix::New(const Arguments &args) {
@@ -78,11 +71,17 @@ Matrix::New(const Arguments &args) {
 
 	Matrix *mat;
 
+
 	if (args.Length() == 0){
 		mat = new Matrix;
-	} else if (args.Length() == 2 && args[0]->IsInt32() && args[1]->IsInt32()){
-			mat = new Matrix(args[0]->IntegerValue(), args[1]->IntegerValue());
-	} else if (args.Length() == 5) {
+	} else if (args.Length() == 2 && args[0]->IntegerValue() && args[1]->IntegerValue()){
+		mat = new Matrix(args[0]->IntegerValue(), args[1]->IntegerValue());
+	} else if (args.Length() == 3 && args[0]->IntegerValue() && args[1]->IntegerValue() && args[2]->IntegerValue()){
+		mat = new Matrix(args[0]->IntegerValue(), 
+			args[1]->IntegerValue(),
+			args[2]->IntegerValue());
+	}
+	else if (args.Length() == 5) {
 		Matrix *other = ObjectWrap::Unwrap<Matrix>(args[0]->ToObject());
 		int x = args[1]->IntegerValue();
 		int y = args[2]->IntegerValue();
@@ -104,11 +103,9 @@ Matrix::NewInstance(){
   return scope.Close(instance);
 }
 
-
 Matrix::Matrix(): ObjectWrap() {
 	mat = cv::Mat();
 }
-
 
 Matrix::Matrix(int w, int h): ObjectWrap() {
     mat = cv::Mat(w, h, CV_32FC3); 
@@ -120,14 +117,16 @@ Matrix::Matrix(cv::Mat m, cv::Rect roi): ObjectWrap() {
 	mat = cv::Mat(m, roi);
 }
 
+Matrix::Matrix(int rows, int cols, int type): ObjectWrap() {
+	mat = cv::Mat(rows, cols, type); 
+}
+
 Handle<Value>
 Matrix::Empty(const Arguments& args){
 	SETUP_FUNCTION(Matrix)
 
 	return scope.Close(Boolean::New(self->mat.empty()));
 }
-
-
 
 double
 Matrix::DblGet(cv::Mat mat, int i, int j){
@@ -168,7 +167,6 @@ Matrix::Get(const Arguments& args){
   return scope.Close(Number::New(val));
 }
 
-
 Handle<Value> 
 Matrix::Set(const Arguments& args){
 	SETUP_FUNCTION(Matrix)
@@ -205,7 +203,6 @@ Matrix::Set(const Arguments& args){
 	return scope.Close(Undefined());
 }
 
-
 Handle<Value> 
 Matrix::Size(const Arguments& args){
 	SETUP_FUNCTION(Matrix)
@@ -233,7 +230,6 @@ Matrix::Row(const Arguments& args){
 	return scope.Close(arr);
 }
 
-
 Handle<Value> 
 	Matrix::PixelRow(const Arguments& args){
 	SETUP_FUNCTION(Matrix)
@@ -248,7 +244,7 @@ Handle<Value>
 		arr->Set(offset    , Number::New((double)pixel.val[0]));
 		arr->Set(offset + 1, Number::New((double)pixel.val[1]));
 		arr->Set(offset + 2, Number::New((double)pixel.val[2]));
-}
+	}
 
 	return scope.Close(arr);
 }
@@ -308,7 +304,6 @@ Matrix::Channels(const Arguments& args){
 	return scope.Close(Number::New(self->mat.channels()));
 }
 
-
 Handle<Value>
 Matrix::ToBuffer(const v8::Arguments& args){
 	SETUP_FUNCTION(Matrix)
@@ -333,8 +328,6 @@ Matrix::ToBuffer(const v8::Arguments& args){
 
 	return scope.Close(actualBuffer);
 }
-
-
 
 struct matrixToBuffer_baton_t {
   Matrix *mm;
@@ -415,7 +408,6 @@ void AfterAsyncToBufferAsync(uv_work_t *req) {
 //  return 0;
 }
 
-
 Handle<Value> 
 Matrix::Ellipse(const v8::Arguments& args){
   SETUP_FUNCTION(Matrix)
@@ -439,7 +431,6 @@ Matrix::Ellipse(const v8::Arguments& args){
   cv::ellipse(self->mat, cv::Point(x, y), cv::Size(width, height), 0, 0, 360, color, thickness, 8, 0);
   return scope.Close(v8::Null());
 }
-
 
 Handle<Value>
 Matrix::Rectangle(const Arguments& args) {
@@ -520,7 +511,6 @@ Matrix::Save(const v8::Arguments& args){
 	return scope.Close(Number::New(res));
 }
 
-
 Handle<Value> 
 Matrix::Eye(const v8::Arguments& args){
 	HandleScope scope;
@@ -554,7 +544,6 @@ Matrix::ConvertGrayscale(const v8::Arguments& args) {
 	return scope.Close(v8::Null());
 }
 
-
 Handle<Value>
 Matrix::ConvertHSVscale(const v8::Arguments& args) {
 	HandleScope scope;
@@ -571,7 +560,6 @@ Matrix::ConvertHSVscale(const v8::Arguments& args) {
 	return scope.Close(v8::Null());
 }
 
-
 Handle<Value>
 Matrix::Copy(const v8::Arguments& args) {
 	HandleScope scope;
@@ -584,7 +572,6 @@ Matrix::Copy(const v8::Arguments& args) {
 
 	return scope.Close(img_to_return);
 }
-
 
 Handle<Value>
 Matrix::Ptr(const v8::Arguments& args) {
@@ -624,7 +611,6 @@ Matrix::AddWeighted(const v8::Arguments& args) {
 	return scope.Close(v8::Null());
 }
 
-
 Handle<Value>
 Matrix::Split(const v8::Arguments& args) {
 	HandleScope scope;
@@ -633,7 +619,6 @@ Matrix::Split(const v8::Arguments& args) {
 
 	return scope.Close(v8::Null());
 }
-
 
 Handle<Value>
 Matrix::Canny(const v8::Arguments& args) {
@@ -648,7 +633,6 @@ Matrix::Canny(const v8::Arguments& args) {
 	return scope.Close(v8::Null());
 }
 
-
 Handle<Value>
 Matrix::Dilate(const v8::Arguments& args) {
 	HandleScope scope;
@@ -660,7 +644,6 @@ Matrix::Dilate(const v8::Arguments& args) {
 
 	return scope.Close(v8::Null());
 }
-
 
 Handle<Value>
 Matrix::FindContours(const v8::Arguments& args) {
@@ -674,9 +657,7 @@ Matrix::FindContours(const v8::Arguments& args) {
 	cv::findContours(self->mat, contours->contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
 	return scope.Close(conts_to_return);
-
 }
-
 
 Handle<Value>
 Matrix::DrawContour(const v8::Arguments& args) {
@@ -697,7 +678,6 @@ Matrix::DrawContour(const v8::Arguments& args) {
 
 	return Undefined();
 }
-
 
 Handle<Value>
 Matrix::DrawAllContours(const v8::Arguments& args) {
@@ -743,7 +723,6 @@ Matrix::GoodFeaturesToTrack(const v8::Arguments& args) {
   }
 
   return scope.Close(arr);
-
 }
 
 Handle<Value>
@@ -787,7 +766,6 @@ cv::Scalar setColor(Local<Object> objColor) {
 
 }
 
-
 Handle<Value>
 Matrix::Resize(const v8::Arguments& args){
   HandleScope scope;
@@ -801,6 +779,17 @@ Matrix::Resize(const v8::Arguments& args){
   ~self->mat;
   self->mat = res;
 
-
   return scope.Close(Undefined());
+}
+
+void
+Matrix::RaiseImmutable(Local<String> property, Local<Value> value, const AccessorInfo& info) {
+  v8::ThrowException(v8::Exception::TypeError(v8::String::New("The property is immutable")));
+}  
+
+Handle<Value>
+Matrix::GetType(Local<String> prop, const AccessorInfo &info) {
+  HandleScope scope;
+  Matrix *self = ObjectWrap::Unwrap<Matrix>(info.This());
+  return scope.Close(Number::New(self->mat.type()));
 }

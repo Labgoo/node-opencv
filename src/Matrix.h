@@ -12,9 +12,12 @@ class Matrix: public node::ObjectWrap {
     Matrix();      
     Matrix(cv::Mat other, cv::Rect roi);
     Matrix(int rows, int cols);
-    Matrix(int rows, int cols, int typ);
+    Matrix(int rows, int cols, int type);
 
     static double DblGet(cv::Mat mat, int i, int j);
+    static Handle<Value> GetType(Local<String> prop, const AccessorInfo &info);
+    static void RaiseImmutable(Local<String> property, Local<Value> value, const AccessorInfo& info);
+
 
     JSFUNC(Eye) // factory
 

@@ -8,6 +8,7 @@
 #include "CamShift.h"
 #include "FeatureDetector.h"
 #include "DescriptorExtractor.h"
+#include "Feature2D.h"
 
 extern "C" void
 init(Handle<Object> target) {
@@ -20,8 +21,10 @@ init(Handle<Object> target) {
     VideoCaptureWrap::Init(target);
     Contour::Init(target);
 	TrackedObject::Init(target);
+    Algorithm::Init(target);
 	FeatureDetector::Init(target);
     DescriptorExtractor::Init(target);
+    Feature2D::Init(target);
 };
 
 NODE_MODULE(opencv, init)

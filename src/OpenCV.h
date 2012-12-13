@@ -9,6 +9,7 @@
 #include <cv.h>
 #include <highgui.h>
 #include <string.h>
+#include <opencv2/nonfree/nonfree.hpp>
 
 using namespace v8;
 using namespace node;

@@ -11,8 +11,10 @@
         , "src/Point.cc"
         , "src/VideoCaptureWrap.cc"
         , "src/CamShift.cc"
+        , "src/Algorithm.cc"
         , "src/FeatureDetector.cc"
         , "src/DescriptorExtractor.cc"
+        , "src/Feature2D.cc"
         ]
       , 'libraries': [
           '<!@(pkg-config --libs opencv)'

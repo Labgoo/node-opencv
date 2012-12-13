@@ -1,7 +1,7 @@
 #include "DescriptorExtractor.h"
 #include "Matrix.h"
 #include "KeyPoint.h"
-
+ 
 v8::Persistent<FunctionTemplate> DescriptorExtractor::constructor;
 
 void

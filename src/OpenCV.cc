@@ -4,15 +4,16 @@
 void
 OpenCV::Init(Handle<Object> target) {
   HandleScope scope;
-  
-  
+
+  //std::cout << "cv::initModule_features2d " << cv::initModule_features2d() << std::endl;
+  //std::cout << "cv::initModule_nonfree " << cv::initModule_nonfree() << std::endl;
+
   // Version string.
   char out [21];
   int n = sprintf(out, "%i.%i", CV_MAJOR_VERSION, CV_MINOR_VERSION);
   target->Set(String::NewSymbol("version"), String::New(out, n));
 
   NODE_SET_METHOD(target, "readImage", ReadImage);
-
 }  
 
 
