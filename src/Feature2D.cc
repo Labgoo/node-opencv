@@ -50,14 +50,37 @@ Handle<Value>
 Feature2D::DetectAndCompute(const Arguments &args) {
 	HandleScope scope;	
 	Feature2D *f2d = ObjectWrap::Unwrap<Feature2D>(args.This());
+	if (args.Length() == 0){
+		return v8::ThrowException(v8::Exception::TypeError(v8::String::New("image parameter is missing")));
+	}
 	Matrix *image = ObjectWrap::Unwrap<Matrix>(args[0]->ToObject());	
+	cv::InputArray imageArray(image->mat);	
+
+	Matrix *imageMask = NULL;
+	if (args.Length() > 1 && !(args[1]->IsNull()) && args[1]->IsObject()){
+		imageMask = ObjectWrap::Unwrap<Matrix>(args[1]->ToObject());	
+	}
+	cv::InputArray imageMaskArray = imageMask != NULL ? cv::InputArray(imageMask->mat) : cv::noArray();
+
+	cv::vector<cv::KeyPoint> keypoints;
+	if (args.Length() > 2 && !(args[2]->IsNull()) && args[2]->IsObject()){
+		Local<Object> keypointsArray = args[2]->ToObject();
+		unsigned int length = keypointsArray->Get(v8::String::New("length"))->ToObject()->Uint32Value();
+		for (unsigned int i=0; i<length; i++){
+			KeyPoint *keypoint = ObjectWrap::Unwrap<KeyPoint>(keypointsArray->Get(i)->ToObject());
+			keypoints.push_back(keypoint->_keyPoint);
+		}
+	}
+	
 	Local<Object> descriptorsMatrixObject = Matrix::NewInstance();
 	Matrix *descriptorsMatrix = ObjectWrap::Unwrap<Matrix>(descriptorsMatrixObject);
-
-	cv::InputArray imageArray(image->mat);	
 	cv::OutputArray descriptors(descriptorsMatrix->mat);
-	cv::vector<cv::KeyPoint> keypoints;
-	f2d->GetFeature2D()->operator()(imageArray, cv::noArray(), keypoints, descriptors, false);
+
+	f2d->GetFeature2D()->operator()(imageArray, 
+		imageMaskArray, 
+		keypoints, 
+		descriptors, 
+		keypoints.size() > 0);
 
 	return scope.Close(descriptorsMatrixObject);
 }
