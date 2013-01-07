@@ -144,12 +144,16 @@ Matrix::DblGet(cv::Mat mat, int i, int j){
       val = (double) pint;
       break;
 
+    case CV_32FC1:
+      val = mat.at<float>(i,j);
+      break;
+
     case CV_64FC1:
       val = mat.at<double>(i, j);
       break;
 
     default:
-	    val = mat.at<double>(i,j);
+      val = mat.at<double>(i, j);
       break;
   }
 
@@ -191,8 +195,13 @@ Matrix::Set(const Arguments& args){
 
         break;
 
+      case CV_32FC1:
+        self->mat.at<float>(i,j) = val;
+        break;
+
       default:
         self->mat.at<double>(i,j) = val;
+        break;
     }
 
 
